@@ -10,3 +10,5 @@ npm-debug.log*
 *.log
 .vscode
 .idea
+*.secret.yaml
+*.secret.yml

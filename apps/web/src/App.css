@@ -1,0 +1,121 @@
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #f0f4ff, #f7f9fc);
+  font-family: "Segoe UI", sans-serif;
+}
+
+.app {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  margin: 0;
+}
+
+.header span {
+  background: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.stock {
+  color: #666;
+}
+
+/* ROW */
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+/* BUTTON */
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #007bff;
+  color: white;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+.primary {
+  background: #28a745;
+}
+
+.primary:hover {
+  background: #1f7a34;
+}
+
+/* STATUS BADGE */
+.status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.done {
+  background: #d4edda;
+  color: #155724;
+}
+
+.total {
+  margin-top: 8px;
+  font-weight: bold;
+}

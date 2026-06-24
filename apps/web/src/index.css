@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ✅ Custom reusable components */
+@layer components {
+
+  .app-container {
+    @apply max-w-6xl mx-auto p-6;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold mb-3;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-lg transition;
+  }
+
+  .grid-auto {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4;
+  }
+
+  .btn {
+    @apply mt-2 w-full py-2 rounded text-white font-medium transition;
+  }
+
+  .btn-primary {
+    @apply bg-blue-500 hover:bg-blue-600;
+  }
+
+  .btn-success {
+    @apply bg-green-500 hover:bg-green-600;
+  }
+
+  .badge {
+    @apply text-xs px-2 py-1 rounded;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-700;
+  }
+
+}

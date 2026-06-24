@@ -10,5 +10,10 @@
     "dev:web": "npm --workspace apps/web run dev",
     "dev:api": "npm --workspace apps/api run dev",
     "dev:worker": "npm --workspace apps/worker run dev"
+  },
+  "dependencies": {
+    "axios": "^1.18.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }

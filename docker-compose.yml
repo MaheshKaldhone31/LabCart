@@ -1,0 +1,75 @@
+services:
+
+  # ✅ PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: labcart-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: labcart
+      POSTGRES_USER: labcart
+      POSTGRES_PASSWORD: labcart
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # ✅ Redis Queue
+  redis:
+    image: redis:7
+    container_name: labcart-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # ✅ API Service
+  api:
+    build:
+      context: ./apps/api
+    container_name: labcart-api
+    restart: always
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      PORT: 4000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: labcart
+      POSTGRES_USER: labcart
+      POSTGRES_PASSWORD: labcart
+      REDIS_URL: redis://redis:6379
+
+  # ✅ Worker Service
+  worker:
+    build:
+      context: ./apps/worker
+    container_name: labcart-worker
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: labcart
+      POSTGRES_USER: labcart
+      POSTGRES_PASSWORD: labcart
+      REDIS_URL: redis://redis:6379
+
+  # ✅ Frontend (Nginx)
+  web:
+    build:
+      context: ./apps/web
+    container_name: labcart-web
+    restart: always
+    ports:
+      - "5173:80"   # ✅ Nginx serves on 80 internally
+    depends_on:
+      - api
+
+# ✅ Persistent Volume
+volumes:
+  postgres_data:
