@@ -1,7 +1,7 @@
 # LabCart
 
 LabCart is a small full-stack e-commerce demo built for learning containerization, Docker Compose, and Kubernetes. The project includes a React frontend, an Express/TypeScript API, a PostgreSQL database, Redis, and a worker service.
-##Test
+
 ## What this project includes
 
 - Frontend: React + Vite + Tailwind CSS
