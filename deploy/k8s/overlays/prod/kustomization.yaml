@@ -1,4 +1,19 @@
-namespace: prod
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: labcart
 
 resources:
-  - ../../base
+  - api-deployment.yaml
+  - api-service.yaml
+  - api-hpa.yaml
+  - web-deployment.yaml
+  - web-service.yaml
+  - web-ingress.yaml
+
+images:
+  - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/api
+    newTag: 7c4b865e37dff134526d8b95e08fa6dcc680008e
+
+  - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/web
+    newTag: 088b555d59294502a90f5f90733b3ef5de839bd0
