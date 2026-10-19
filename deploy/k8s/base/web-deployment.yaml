@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web
-  namespace: dev
+  namespace: labcart
   labels:
     app: web
 spec:
@@ -20,8 +20,8 @@ spec:
     spec:
       containers:
         - name: web
-          image: labcart-web
-          imagePullPolicy: IfNotPresent
+          image: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/web:v1
+          imagePullPolicy: Always
 
           ports:
             - containerPort: 80

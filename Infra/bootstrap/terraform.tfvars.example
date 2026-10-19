@@ -1,0 +1,4 @@
+aws_region        = "ap-south-1"
+project_name      = "labcart"
+environment       = "prod"
+state_bucket_name = "labcart-prod-tfstate-REPLACE-WITH-UNIQUE-SUFFIX"

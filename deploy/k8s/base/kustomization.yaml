@@ -19,7 +19,6 @@ resources:
   - redis-service.yaml
 
   # ✅ Ingress
-  - api-ingress.yaml
   - web-ingress.yaml
 
   # ✅ Autoscaling

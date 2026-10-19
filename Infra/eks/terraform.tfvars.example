@@ -1,0 +1,14 @@
+aws_region = "ap-south-1"
+project_name = "labcart"
+environment = "prod"
+cluster_name = "labcart-prod"
+kubernetes_version = "1.34"
+
+vpc_id = "vpc-0938be6cd86487fcb"
+private_subnet_id = "subnet-0ee53acf95f028459"
+private_subnet_2_id = "REPLACE_WITH_SECOND_PRIVATE_SUBNET_ID"
+
+node_instance_types = ["t3.medium"]
+node_desired_size = 2
+node_min_size = 1
+node_max_size = 3

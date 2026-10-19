@@ -1,0 +1,1 @@
+Updated LabCart Network + EKS. Network: 2 AZs, 1 public subnet, 2 private subnets, 1 NAT. EKS uses both private subnets. ECR unchanged. Review network plan before apply; then set second private subnet ID in EKS tfvars and plan.

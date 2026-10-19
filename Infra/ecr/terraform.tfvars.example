@@ -1,0 +1,4 @@
+aws_region       = "ap-south-1"
+project_name     = "labcart"
+environment      = "prod"
+repository_names = ["api", "web", "worker"]

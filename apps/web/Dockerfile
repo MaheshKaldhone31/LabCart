@@ -1,4 +1,4 @@
-# ✅ Stage 1 — Build frontend
+# Stage 1 — Build frontend
 FROM node:20 AS builder
 
 WORKDIR /app
@@ -11,11 +11,12 @@ COPY . .
 RUN npm run build
 
 
-# ✅ Stage 2 — Serve using Nginx (lightweight)
+# Stage 2 — Serve using Nginx
 FROM nginx:alpine
 
-# Copy built app
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
