@@ -1,3 +1,4 @@
+
 name: LabCart CI and ECR
 
 on:
@@ -7,9 +8,12 @@ on:
     paths-ignore:
       - "**/*.md"
       - "Infra/**"
+      - "deploy/k8s/overlays/prod/kustomization.yaml"
+
   pull_request:
     branches:
       - master
+
   workflow_dispatch:
 
 permissions:
@@ -131,3 +135,87 @@ jobs:
         if: failure()
         run: |
           echo "Build or ECR publishing failed for ${{ matrix.app }}." >> "$GITHUB_STEP_SUMMARY"
+
+  update-gitops:
+    name: Create production image update PR
+    needs: build-push
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update production image tags
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_ACCOUNT_ID: ${{ env.AWS_ACCOUNT_ID }}
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("deploy/k8s/overlays/prod/kustomization.yaml")
+          content = path.read_text()
+          tag = os.environ["IMAGE_TAG"]
+          account_id = os.environ["AWS_ACCOUNT_ID"]
+          region = os.environ["AWS_REGION"]
+
+          for repository in ("api", "web", "worker"):
+              image_name = (
+                  f"{account_id}.dkr.ecr.{region}.amazonaws.com/"
+                  f"labcart/{repository}"
+              )
+
+              pattern = (
+                  r"(?m)^(\s*-\s*name:\s*"
+                  + re.escape(image_name)
+                  + r"\s*\n)(\s+newTag:\s*)[^\s#]+"
+              )
+
+              content, count = re.subn(
+                  pattern,
+                  lambda match: match.group(1)
+                  + match.group(2)
+                  + tag,
+                  content,
+                  count=1,
+              )
+
+              if count != 1:
+                  raise SystemExit(
+                      f"Expected exactly one image entry for "
+                      f"{repository} in {path}. No PR will be created."
+                  )
+
+          path.write_text(content)
+          PY
+
+      - name: Create or update GitOps pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: master
+          branch: automation/update-production-image-tags
+          delete-branch: false
+          commit-message: "chore(gitops): update production image tags"
+          title: "chore(gitops): update production image tags"
+          body: |
+            ## Automated production image update
+
+            This pull request was generated after successful image builds
+            and ECR pushes.
+
+            - API, web, and worker use the source commit SHA.
+            - All three image tags are updated together.
+            - Review the rendered Kubernetes manifests before merging.
+            - Argo CD production synchronization remains manual.
