@@ -1,9 +1,5 @@
-
 name: LabCart CI and ECR
 
-# ─────────────────────────────────────────────
-# Triggers
-# ─────────────────────────────────────────────
 on:
   push:
     branches:
@@ -16,37 +12,29 @@ on:
       - master
   workflow_dispatch:
 
-# Least-privilege default permissions.
 permissions:
   contents: read
 
-# Cancel outdated runs for the same branch or ref.
 concurrency:
   group: labcart-ci-${{ github.ref }}
   cancel-in-progress: true
 
-# ─────────────────────────────────────────────
-# Shared configuration
-# ─────────────────────────────────────────────
 env:
   AWS_REGION: ap-south-1
   AWS_ACCOUNT_ID: "223901279187"
   NODE_VERSION: "22"
 
 jobs:
-  # ═══════════════════════════════════════════
-  # JOB 1 — Validate applications
-  # ═══════════════════════════════════════════
   validate:
-    name: "1. Validate applications"
+    name: Validate applications
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -57,54 +45,21 @@ jobs:
         run: npm ci
 
       - name: Build API
-        run: |
-          echo "::group::Building API"
-          npm --workspace apps/api run build
-          echo "::endgroup::"
+        run: npm --workspace apps/api run build
 
       - name: Build worker
-        run: |
-          echo "::group::Building worker"
-          npm --workspace apps/worker run build
-          echo "::endgroup::"
+        run: npm --workspace apps/worker run build
 
-      - name: Lint web application
-        run: |
-          echo "::group::Linting web application"
-          npm --workspace apps/web run lint
-          echo "::endgroup::"
+      - name: Lint web
+        run: npm --workspace apps/web run lint
 
-      - name: Build web application
-        run: |
-          echo "::group::Building web application"
-          npm --workspace apps/web run build
-          echo "::endgroup::"
+      - name: Build web
+        run: npm --workspace apps/web run build
 
-      - name: Validation summary
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-        run: |
-          {
-            echo "## LabCart — Application Validation"
-            echo ""
-            echo "- **Status:** ${JOB_STATUS}"
-            echo "- **Node.js:** ${NODE_VERSION}"
-            echo "- **API:** TypeScript build"
-            echo "- **Worker:** TypeScript build"
-            echo "- **Web:** ESLint and Vite production build"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # ═══════════════════════════════════════════
-  # JOB 2 — Build, scan and push Docker images
-  # ═══════════════════════════════════════════
-  build-scan-push:
-    name: "2. Build, scan and push ${{ matrix.app }}"
+  build-push:
+    name: Build and push ${{ matrix.app }}
     needs: validate
-
-    # Pull requests validate code but do not publish images.
     if: github.event_name != 'pull_request'
-
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -118,20 +73,15 @@ jobs:
         include:
           - app: api
             repository: labcart/api
-
           - app: web
             repository: labcart/web
-
           - app: worker
             repository: labcart/worker
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # ───────────────────────────────────────
-      # AWS authentication through GitHub OIDC
-      # ───────────────────────────────────────
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -139,77 +89,45 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: LabCartGitHubActions
 
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
-      # ───────────────────────────────────────
-      # Authenticate with Amazon ECR
-      # ───────────────────────────────────────
-      - name: Log in to Amazon ECR
+      - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      # ───────────────────────────────────────
-      # Prepare immutable image metadata
-      # ───────────────────────────────────────
-      - name: Set image metadata
+      - name: Set image URI
         id: image
         env:
           ECR_REPOSITORY: ${{ matrix.repository }}
         run: |
-          IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${GITHUB_SHA}"
+          echo "uri=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
-          echo "uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
-
-          {
-            echo "## LabCart — ${{ matrix.app }}"
-            echo ""
-            echo "- **Commit:** \`${GITHUB_SHA}\`"
-            echo "- **Image:** \`${IMAGE_URI}\`"
-            echo "- **Region:** \`${AWS_REGION}\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # ───────────────────────────────────────
-      # BuildKit and cache
-      # ───────────────────────────────────────
-      - name: Set up Docker Buildx
+      - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/${{ matrix.app }}/Dockerfile
           tags: ${{ steps.image.outputs.uri }}
-          load: true
-          push: false
+          push: true
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
 
-
-      # ───────────────────────────────────────
-      # Final status
-      # ───────────────────────────────────────
-      - name: Publish success summary
+      - name: Publish summary
         if: success()
         env:
           IMAGE_URI: ${{ steps.image.outputs.uri }}
         run: |
           {
+            echo "## LabCart — ${{ matrix.app }}"
             echo ""
-            echo "### Result"
-            echo "- **Build:** Passed"
-            echo "- **Security scan:** Passed"
+            echo "- **Status:** Success"
+            echo "- **Docker build:** Passed"
             echo "- **ECR push:** Completed"
-            echo "- **Published image:** \`${IMAGE_URI}\`"
+            echo "- **Security scan:** Skipped"
+            echo "- **Image:** \`${IMAGE_URI}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Report failure
         if: failure()
         run: |
-          {
-            echo ""
-            echo "### Result"
-            echo "- **Application:** ${{ matrix.app }}"
-            echo "- **Status:** Failed"
-            echo "- Review the failed step for build, AWS, ECR or security-scan details."
-          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Build or ECR publishing failed for ${{ matrix.app }}." >> "$GITHUB_STEP_SUMMARY"
