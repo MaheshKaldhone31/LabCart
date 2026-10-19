@@ -14,10 +14,10 @@ resources:
 
 images:
   - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/api
-    newTag: 9e52261b03550e68872b0aa87c66feceb74f955a
+    newTag: 0eda70ef323797fc887b0d308f7041ca234ba8b1
 
   - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/web
-    newTag: 9e52261b03550e68872b0aa87c66feceb74f955a
+    newTag: 0eda70ef323797fc887b0d308f7041ca234ba8b1
 
   - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/worker
-    newTag: 9e52261b03550e68872b0aa87c66feceb74f955a
+    newTag: 0eda70ef323797fc887b0d308f7041ca234ba8b1
