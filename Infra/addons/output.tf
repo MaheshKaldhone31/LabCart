@@ -7,5 +7,6 @@ output "controller_policy_arn" {
 }
 
 output "oidc_provider_arn" {
-  value = data.aws_iam_openid_connect_provider.eks.arn
+  description = "IAM OIDC provider ARN for the EKS cluster"
+  value       = aws_iam_openid_connect_provider.eks.arn
 }

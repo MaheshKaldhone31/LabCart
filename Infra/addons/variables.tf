@@ -10,7 +10,7 @@ variable "cluster_name" {
 
 variable "vpc_id" {
   type    = string
-  default = "vpc-05919cb4e11d57ee7"
+  default = "vpc-0fd1587fac8c3be7e"
 }
 
 variable "controller_role_name" {

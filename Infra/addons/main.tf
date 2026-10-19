@@ -9,13 +9,21 @@ data "aws_iam_policy_document" "controller_assume_role" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
-      type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+      type = "Federated"
+
+      identifiers = [
+        aws_iam_openid_connect_provider.eks.arn
+      ]
     }
 
     condition {
-      test     = "StringEquals"
-      variable = "${replace(data.aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      test = "StringEquals"
+
+      variable = "${replace(
+        aws_iam_openid_connect_provider.eks.url,
+        "https://",
+        ""
+      )}:sub"
 
       values = [
         "system:serviceaccount:kube-system:aws-load-balancer-controller"
@@ -23,8 +31,13 @@ data "aws_iam_policy_document" "controller_assume_role" {
     }
 
     condition {
-      test     = "StringEquals"
-      variable = "${replace(data.aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud"
+      test = "StringEquals"
+
+      variable = "${replace(
+        aws_iam_openid_connect_provider.eks.url,
+        "https://",
+        ""
+      )}:aud"
 
       values = ["sts.amazonaws.com"]
     }
@@ -32,8 +45,7 @@ data "aws_iam_policy_document" "controller_assume_role" {
 }
 
 # ---------------------------------------------------------
-# IAM Role
-# Existing role is imported into Terraform state
+# IAM Role - AWS Load Balancer Controller
 # ---------------------------------------------------------
 
 resource "aws_iam_role" "controller" {
@@ -59,9 +71,7 @@ resource "aws_iam_role_policy_attachment" "controller" {
 
 # ---------------------------------------------------------
 # AWS Load Balancer Controller - Helm Release
-# Existing release is imported into Terraform state
 # ---------------------------------------------------------
-
 resource "helm_release" "aws_load_balancer_controller" {
   name      = "aws-load-balancer-controller"
   namespace = "kube-system"
@@ -70,7 +80,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   chart      = "aws-load-balancer-controller"
   version    = "3.6.0"
 
-  # Retain existing Helm values not overridden below.
+  # Reuse existing Helm values where available.
   reuse_values = true
 
   values = [
@@ -80,8 +90,12 @@ resource "helm_release" "aws_load_balancer_controller" {
       vpcId       = var.vpc_id
 
       serviceAccount = {
-        create = false
+        create = true
         name   = "aws-load-balancer-controller"
+
+        annotations = {
+          "eks.amazonaws.com/role-arn" = aws_iam_role.controller.arn
+        }
       }
     })
   ]
@@ -89,4 +103,8 @@ resource "helm_release" "aws_load_balancer_controller" {
   depends_on = [
     aws_iam_role_policy_attachment.controller
   ]
+
+  timeout = 600
+  wait    = true
 }
+
