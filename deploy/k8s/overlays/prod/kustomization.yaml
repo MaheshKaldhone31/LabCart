@@ -10,6 +10,7 @@ resources:
   - web-deployment.yaml
   - web-service.yaml
   - web-ingress.yaml
+  - worker-deployment.yaml
 
 images:
   - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/api
@@ -17,3 +18,6 @@ images:
 
   - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/web
     newTag: 088b555d59294502a90f5f90733b3ef5de839bd0
+
+  - name: 223901279187.dkr.ecr.ap-south-1.amazonaws.com/labcart/worker
+    newTag: 0c852f78d11c72eabdbd8aca872ff87473e1ef54
