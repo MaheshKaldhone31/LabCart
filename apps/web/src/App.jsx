@@ -1,10 +1,11 @@
+
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const API_BASE = "/api"; 
+const API_BASE = "/api";
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -17,7 +18,7 @@ export default function App() {
   useEffect(() => {
     loadData();
 
-    // ✅ auto refresh orders (important UX)
+    // Automatically refresh orders every 4 seconds.
     const interval = setInterval(loadOrders, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -39,18 +40,24 @@ export default function App() {
   }
 
   async function loadOrders() {
-    const res = await axios.get(`${API_BASE}/orders`);
-    setOrders(res.data);
+    try {
+      const res = await axios.get(`${API_BASE}/orders`);
+      setOrders(res.data);
+    } catch {
+      toast.error("Failed to refresh orders");
+    }
   }
 
   function addToCart(p) {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === p.id);
+
       if (existing) {
         return prev.map((i) =>
           i.id === p.id ? { ...i, qty: i.qty + 1 } : i
         );
       }
+
       return [...prev, { ...p, qty: 1 }];
     });
 
@@ -70,9 +77,12 @@ export default function App() {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
 
   async function placeOrder() {
-    if (!cart.length) return toast.warn("Cart empty");
+    if (!cart.length) {
+      return toast.warn("Cart empty");
+    }
 
     setPlacing(true);
+
     try {
       await axios.post(`${API_BASE}/orders`, {
         items: cart.map((i) => ({ id: i.id, qty: i.qty }))
@@ -110,6 +120,21 @@ export default function App() {
           </div>
         </header>
 
+        {/* CI/CD DEPLOYMENT TEST BANNER */}
+        <div className="mx-6 mt-5 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 px-5 py-4 text-white shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🚀</span>
+            <div>
+              <h2 className="text-lg font-bold">
+                CI/CD Deployment Test — Latest Build
+              </h2>
+              <p className="text-sm text-white/90">
+                Successfully deployed through GitHub Actions to Amazon EKS.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* LOADING */}
         {loading ? (
           <div className="p-10 animate-pulse space-y-4">
@@ -128,8 +153,7 @@ export default function App() {
                   <motion.div
                     key={p.id}
                     whileHover={{ scale: 1.05 }}
-                    className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md 
-                    transform hover:-translate-y-1 hover:shadow-2xl transition"
+                    className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md transform hover:-translate-y-1 hover:shadow-2xl transition"
                   >
                     <h3 className="font-semibold">{p.name}</h3>
 
@@ -139,9 +163,7 @@ export default function App() {
 
                     <button
                       onClick={() => addToCart(p)}
-                      className="mt-2 w-full py-2 rounded-lg bg-gradient-to-r 
-                      from-blue-500 to-indigo-600 text-white 
-                      hover:shadow-lg active:scale-95 transition"
+                      className="mt-2 w-full py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg active:scale-95 transition"
                     >
                       Add to Cart
                     </button>
@@ -155,7 +177,6 @@ export default function App() {
               <h2 className="text-lg font-semibold mb-2">Cart</h2>
 
               <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
-
                 {cart.length === 0 ? (
                   <p className="text-gray-400">
                     Your cart is empty
@@ -189,8 +210,7 @@ export default function App() {
                     <button
                       onClick={placeOrder}
                       disabled={placing}
-                      className="mt-3 w-full py-2 bg-green-500 text-white rounded 
-                      disabled:opacity-50 hover:bg-green-600 transition"
+                      className="mt-3 w-full py-2 bg-green-500 text-white rounded disabled:opacity-50 hover:bg-green-600 transition"
                     >
                       {placing ? "Placing..." : "Checkout"}
                     </button>
