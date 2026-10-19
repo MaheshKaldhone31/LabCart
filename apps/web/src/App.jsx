@@ -129,7 +129,8 @@ export default function App() {
                 CI/CD Deployment Test — Latest Build
               </h2>
               <p className="text-sm text-white/90">
-                Successfully deployed through GitHub Actions to Amazon EKS.
+                Successfully deployed through GitHub Actions to Amazon EKS by ArgoDC.
+                Devloped by MAHESH
               </p>
             </div>
           </div>
